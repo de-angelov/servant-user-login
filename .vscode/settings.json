@@ -1,0 +1,29 @@
+{
+  "haskell.plugin.fourmolu.config.external": true,
+  "haskell.formattingProvider": "fourmolu",
+  "cSpell.words": [
+    "aeson",
+    "anyclass",
+    "devcontainers",
+    "eamodio",
+    "entr",
+    "fourmolu",
+    "hasql",
+    "hlint",
+    "hoovercj",
+    "hspec",
+    "justusadam",
+    "libpq",
+    "mconcat",
+    "nextval",
+    "oderwat",
+    "pandoc",
+    "uncurry",
+    "varchar",
+    "withool"
+  ],
+  "editor.renderWhitespace": "all",
+  "editor.tabSize": 2,
+  "workbench.preferredDarkColorTheme": "Lambda Dark+",
+  "workbench.colorTheme": "Lambda Dark+"
+}
