@@ -19,11 +19,6 @@ getDBPool =
       poolSize = 4
     in DBT.loadPool connectionString poolSize
 
--- text =
---   logFile <-
-
---   _ <-
-
 prepareFileIO :: IO ()
 prepareFileIO =
   openFile "example.txt" WriteMode

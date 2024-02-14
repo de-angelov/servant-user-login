@@ -10,8 +10,6 @@ import Servant ((:<|>)(..), (:>), Context ((:.)) )
 import Types (User, HasDbPool)
 import qualified Servant as S
 
-
-
 import Types (AppConfig (appPort))
 import Pages.Home (HomePage, homePage)
 import Pages.Login (LoginPage, loginPage)
@@ -30,12 +28,12 @@ type ServerAPI auths
   :<|> SecretPage auths
   :<|> AuthAPI
 
-server :: (HasDbPool a, HasLogFunc a) => S.ServerT (ServerAPI auths) (RIO a)
-server
+server :: (HasDbPool a, HasLogFunc a) => SAS.CookieSettings -> SAS.JWTSettings -> S.ServerT (ServerAPI auths) (RIO a)
+server cs jwts
   = homePage
   :<|> loginPage
   :<|> secretPage
-  :<|> authAPI
+  :<|> authAPI cs jwts
 
 apiProxy :: S.Proxy (ServerAPI '[SAS.Cookie])
 apiProxy = S.Proxy
@@ -45,14 +43,14 @@ rioToHandler :: a -> RIO a b -> S.Handler b
 rioToHandler env app = S.Handler $ ExceptT $ try $ runRIO env app
 
 
-mkApp :: S.Context '[SAS.CookieSettings, SAS.JWTSettings] -> AppConfig -> S.Application
-mkApp ctx config
+mkApp :: S.Context '[SAS.CookieSettings, SAS.JWTSettings] -> SAS.CookieSettings -> SAS.JWTSettings -> AppConfig -> S.Application
+mkApp ctx cs jwts config
   = S.serveWithContext apiProxy ctx rioServer
   where
     rioServer = S.hoistServerWithContext
                       apiProxy
                       (S.Proxy :: S.Proxy '[SAS.CookieSettings, SAS.JWTSettings])
-                      (rioToHandler config) server
+                      (rioToHandler config) (server cs jwts)
 
 
 jsonRequestLogger :: RIO AppConfig Middleware
@@ -65,11 +63,18 @@ startServer config = do
 
   let
     port = appPort config
-    ctx
-      = SAS.defaultCookieSettings
-      :. SAS.defaultJWTSettings key
-      :. S.EmptyContext
-    app = mkApp ctx config
+    jwts = SAS.defaultJWTSettings key
+    cs = SAS.defaultCookieSettings
+        { SAS.cookieIsSecure = SAS.NotSecure
+        , SAS.cookieSameSite = SAS.SameSiteStrict
+        -- , SAS.cookieSameSite = SAS.AnySite
+        , SAS.cookieXsrfSetting = Nothing
+        -- , SAS.cookieXsrfSetting = Just SAS.def {SAS.xsrfExcludeGet = True}
+        }
+    -- https://stackoverflow.com/questions/62912224/haskell-servant-auth-cookie-used-via-browser
+    ctx = cs :. jwts  :. S.EmptyContext
+
+    app = mkApp ctx cs jwts config
 
     settings = Warp.defaultSettings
       & Warp.setPort port

@@ -90,6 +90,7 @@ executable rio-cabal
         , cryptonite
         , wai-extra
         , wai
+        , heredoc
 
     ghc-options:
         -Wall

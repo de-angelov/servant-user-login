@@ -4,6 +4,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs #-}
 -- {-# LANGUAGE InstanceSigs #-}
 
 
@@ -24,10 +25,11 @@ import Data.Aeson (FromJSON, ToJSON)
 import qualified Servant as S
 import qualified Rel8 as R
 import Control.Monad.Error.Class (MonadError)
-import Text.Blaze.XHtml5 (ToMarkup)
+import Text.Blaze.XHtml5 (ToMarkup (..))
 import Servant.Auth.JWT (FromJWT)
 import Servant.Auth.Server (ToJWT)
 import Hasql.Pool (Pool)
+import Text.Blaze.Html (Markup)
 
 class HasDbPool env where
   dbPoolL :: Lens' env Pool
@@ -78,6 +80,11 @@ data User
   { username :: !Text
   , id :: !Int64
   , password :: !HashedPassword
-  } deriving (Show, Eq,  Generic, FromJSON, ToJSON, FromJWT, ToJWT, ToMarkup)
+  } deriving (Show, Eq,  Generic, FromJSON, ToJSON, FromJWT, ToJWT)
+
+
+instance ToMarkup User where
+  toMarkup :: User -> Markup
+  toMarkup = toMarkup . show
 
 
