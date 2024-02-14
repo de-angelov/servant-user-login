@@ -19,22 +19,37 @@ js :: Text
 js =
   [here|
     var form = document.getElementById('form');
+
+
     function handleForm(event) { event.preventDefault(); }
     form.addEventListener('submit', handleForm);
 
     var form = document.getElementById('form');
-    function submitToAPI(apiUrl) {
-    console.log('api =>', apiUrl);
     var password = document.getElementById('password')?.value;
     var username = document.getElementById('username')?.value;
-    fetch(apiUrl,
+
+
+    function register() {
+    fetch('/api/register',
+    { method: 'POST',
+      body: JSON.stringify({ username, password }),
+      headers: new Headers({'content-type': 'application/json'}),
+    })
+      .then(login)
+      .catch(err => {
+        alert('error', err);
+      });
+    }
+
+    function login() {
+    fetch('/api/login',
     {method: 'POST',
     body: JSON.stringify({ username, password }),
     headers: new Headers({'content-type': 'application/json'}),
     })
     .then(_ => window.location.href = '/secret')
     .catch(err => {
-    console.log('error', err);
+      alert('error', err);
     });
     }
   |]
@@ -61,12 +76,12 @@ loginPageHtml =  H.docTypeHtml $ do
         H.input
           ! A.type_ "submit"
           ! A.value "register"
-          ! A.onclick "submitToAPI('/api/register')"
+          ! A.onclick "register()"
         H.input
           ! A.type_ "submit"
 
           ! A.value "log in"
-          ! A.onclick "submitToAPI('/api/login')"
+          ! A.onclick "login()"
     H.script
       ! A.type_ "text/javascript"
       $ toMarkup js
